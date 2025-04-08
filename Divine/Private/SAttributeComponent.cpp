@@ -62,8 +62,6 @@ bool USAttributeComponent::ApplyHealthChange(AActor* InstigatorActor, float Delt
 
 void USAttributeComponent::ApplyMaxHealthChange(float DeltaMax)
 {
-	// If this component is attached to an enemy (non-player), we assume level scaling handles health,
-	// so we exit early. (This check uses ABasePlayer as an example of a player character.)
 	if (!GetOwner()->IsA(ABasePlayer::StaticClass()))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("ApplyMaxHealthChange called on non-player actor; enemy scaling is handled elsewhere."));

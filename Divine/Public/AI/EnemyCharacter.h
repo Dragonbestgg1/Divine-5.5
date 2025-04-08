@@ -1,4 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -27,15 +26,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UUserWidget> HealthBarWidgetClass;
 
-	/* Widget to display when bot first sees a player. */
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UUserWidget> SpottedWidgetClass;
 
-	/* Index must match the CustomPrimitiveData index used in the Overlay material */
 	UPROPERTY(VisibleAnywhere, Category = "Effects")
 	int32 HitFlash_CustomPrimitiveIndex;
 
-	/* Key for AI Blackboard 'TargetActor' */
 	UPROPERTY(VisibleAnywhere, Category = "Effects")
 	FName TargetActorKey;
 
@@ -57,7 +53,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<USActionComponent> ActionComp;
 
-	/* Handle fidelity for AI as they are off-screen or at far distances */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<USSignificanceComponent> SigManComp;
 
@@ -93,13 +88,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combat")
 	float BaseDamage;
 
-	// Getter for the base damage.
 	float GetBaseDamage() const { return BaseDamage; }
 
-	// Setter for updating the damage (e.g., after scaling).
 	void SetDamage(float NewDamage) { BaseDamage = NewDamage; }
 
-	// In EnemyCharacter.h
 	virtual void Tick(float DeltaTime) override;
 
 	void PlayAttackMontage();

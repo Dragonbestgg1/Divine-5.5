@@ -30,7 +30,6 @@ static TAutoConsoleVariable<bool> CVarSpawnBots(
 
 ASGameModeBase::ASGameModeBase()
 {
-    // Basic initialization.
     SpawnTimerInterval = 0.1f;
     CooldownTimeBetweenFailures = 0.0f;
     DesiredPowerupCount = 1;
@@ -45,68 +44,88 @@ ASGameModeBase::ASGameModeBase()
     AvailableSpawnCredit = InitialSpawnCredit;
 }
 
-float ASGameModeBase::CalculateSpawnCredit(int32 Level)
-{
-    if (Level == 1)
-    {
-        return 50.0f;
-    }
-    else if (Level == 2)
-    {
-        return 100.0f;
-    }
-    else if (Level >= 3 && Level <= 7)
-    {
-        // For level 3 and up: spawn credit is 100 + (Level - 2) * 100.
-        return 100.0f + (Level - 2) * 100.0f;
-    }
-    else
-    {
-        return 0.0f;
-    }
-}
-
-void ASGameModeBase::SpawnInitialEnemies()
-{
-    int32 NrOfAliveBots = 0;
-    for (TActorIterator<AEnemyCharacter> It(GetWorld()); It; ++It)
-    {
-        if (USAttributeComponent* AttributeComp = USAttributeComponent::GetAttributes(*It))
-        {
-            if (AttributeComp->IsAlive())
-            {
-                NrOfAliveBots++;
-            }
-        }
-    }
-    if (NrOfAliveBots == 0)
-    {
-        SpawnBotTimerElapsed();
-    }
-}
-
-void ASGameModeBase::OnNewLevelStarted()
-{
-    AvailableSpawnCredit = CalculateSpawnCredit(CurrentLevel);
-}
-
-void ASGameModeBase::UpdateSpawnRateForLevel()
-{
-    AvailableSpawnCredit = CalculateSpawnCredit(CurrentLevel);
-}
-
 void ASGameModeBase::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
 {
     Super::InitGame(MapName, Options, ErrorMessage);
 
     USSaveGameSubsystem* SG = GetGameInstance()->GetSubsystem<USSaveGameSubsystem>();
     FString SelectedSaveSlot = UGameplayStatics::ParseOption(Options, TEXT("SaveGame"));
-    // Optionally load save game here.
+}
+
+void ASGameModeBase::StartPlay()
+{
+    Super::StartPlay();
+
+    AvailableSpawnCredit = InitialSpawnCredit;
+    APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
+    if (PC && PC->GetPawn() == nullptr)
+    {
+        APawn* NewPawn = GetWorld()->SpawnActor<APawn>(DefaultPawnClass, FVector::ZeroVector, FRotator::ZeroRotator);
+        if (NewPawn)
+        {
+            PC->Possess(NewPawn);
+        }
+    }
+    if (CurrentLevel == 1)
+    {
+        SpawnInitialEnemies();
+    }
+}
+
+void ASGameModeBase::OnLevelChanged()
+{
+    if (bIsTransitioning)
+    {
+        return;
+    }
+
+    bIsTransitioning = true;
+
+    if (CurrentLevel == 7)
+    {
+        if (CompletedScreenWidgetClass)
+        {
+            CompletedScreenWidget = CreateWidget<UUserWidget>(GetWorld(), CompletedScreenWidgetClass);
+            if (CompletedScreenWidget)
+            {
+                CompletedScreenWidget->AddToViewport();
+
+                APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
+                if (PC)
+                {
+                    FInputModeUIOnly InputMode;
+                    InputMode.SetWidgetToFocus(CompletedScreenWidget->TakeWidget());
+                    InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+                    PC->SetInputMode(InputMode);
+                    PC->bShowMouseCursor = true;
+                }
+            }
+        }
+        return;
+    }
+
+    if (LoadingScreenWidgetClass)
+    {
+        LoadingScreenWidget = CreateWidget<UUserWidget>(GetWorld(), LoadingScreenWidgetClass);
+        if (LoadingScreenWidget)
+        {
+            LoadingScreenWidget->AddToViewport();
+        }
+    }
+
+    FName OldLevelName = *FString::Printf(TEXT("Level%d"), CurrentLevel);
+    FLatentActionInfo UnloadLatentInfo;
+    UGameplayStatics::UnloadStreamLevel(this, OldLevelName, UnloadLatentInfo, false);
+
+    CurrentLevel++;
+    OnNewLevelStarted();
+
+    FName NextLevelName = *FString::Printf(TEXT("Level%d"), CurrentLevel);
+    LoadSubLevelAsync(NextLevelName);
 }
 
 void ASGameModeBase::OnSubLevelLoaded()
 {
-    // Start polling the streaming level's state using the member timer handle.
     GetWorldTimerManager().SetTimer(LevelLoadTimerHandle, FTimerDelegate::CreateLambda([this]()
         {
             FName LevelName = *FString::Printf(TEXT("Level%d"), CurrentLevel);
@@ -157,83 +176,59 @@ void ASGameModeBase::LoadSubLevelAsync(FName LevelName)
     UGameplayStatics::LoadStreamLevel(
         this,
         LevelName,
-        true,    // bMakeVisibleAfterLoad
-        false,   // bShouldBlockOnLoad
+        true,    
+        false,   
         LatentInfo
     );
 }
 
-void ASGameModeBase::StartPlay()
+void ASGameModeBase::OnNewLevelStarted()
 {
-    Super::StartPlay();
+    AvailableSpawnCredit = CalculateSpawnCredit(CurrentLevel);
+}
 
-    AvailableSpawnCredit = InitialSpawnCredit;
-    APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
-    if (PC && PC->GetPawn() == nullptr)
+void ASGameModeBase::UpdateSpawnRateForLevel()
+{
+    AvailableSpawnCredit = CalculateSpawnCredit(CurrentLevel);
+}
+
+float ASGameModeBase::CalculateSpawnCredit(int32 Level)
+{
+    if (Level == 1)
     {
-        APawn* NewPawn = GetWorld()->SpawnActor<APawn>(DefaultPawnClass, FVector::ZeroVector, FRotator::ZeroRotator);
-        if (NewPawn)
-        {
-            PC->Possess(NewPawn);
-        }
+        return 50.0f;
     }
-    if (CurrentLevel == 1)
+    else if (Level == 2)
     {
-        SpawnInitialEnemies();
+        return 100.0f;
+    }
+    else if (Level >= 3 && Level <= 7)
+    {
+        return 100.0f + (Level - 2) * 100.0f;
+    }
+    else
+    {
+        return 0.0f;
     }
 }
 
-void ASGameModeBase::OnLevelChanged()
+void ASGameModeBase::SpawnInitialEnemies()
 {
-    if (bIsTransitioning)
+    int32 NrOfAliveBots = 0;
+    for (TActorIterator<AEnemyCharacter> It(GetWorld()); It; ++It)
     {
-        return;
-    }
-
-    bIsTransitioning = true;
-
-    if (CurrentLevel == 7)
-    {
-        if (CompletedScreenWidgetClass)
+        if (USAttributeComponent* AttributeComp = USAttributeComponent::GetAttributes(*It))
         {
-            CompletedScreenWidget = CreateWidget<UUserWidget>(GetWorld(), CompletedScreenWidgetClass);
-            if (CompletedScreenWidget)
+            if (AttributeComp->IsAlive())
             {
-                CompletedScreenWidget->AddToViewport();
-
-                // Get the player controller and set UI input mode so the cursor is visible.
-                APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
-                if (PC)
-                {
-                    FInputModeUIOnly InputMode;
-                    InputMode.SetWidgetToFocus(CompletedScreenWidget->TakeWidget());
-                    InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-                    PC->SetInputMode(InputMode);
-                    PC->bShowMouseCursor = true;
-                }
+                NrOfAliveBots++;
             }
         }
-        return;
     }
-
-    if (LoadingScreenWidgetClass)
+    if (NrOfAliveBots == 0)
     {
-        LoadingScreenWidget = CreateWidget<UUserWidget>(GetWorld(), LoadingScreenWidgetClass);
-        if (LoadingScreenWidget)
-        {
-            LoadingScreenWidget->AddToViewport();
-        }
+        SpawnBotTimerElapsed();
     }
-
-    FName OldLevelName = *FString::Printf(TEXT("Level%d"), CurrentLevel);
-    FLatentActionInfo UnloadLatentInfo;
-    UGameplayStatics::UnloadStreamLevel(this, OldLevelName, UnloadLatentInfo, false);
-
-    CurrentLevel++;
-    OnNewLevelStarted();
-
-    FName NextLevelName = *FString::Printf(TEXT("Level%d"), CurrentLevel);
-    LoadSubLevelAsync(NextLevelName);
 }
 
 void ASGameModeBase::RequestPrimedActors()
@@ -266,7 +261,10 @@ void ASGameModeBase::SpawnBotTimerElapsed()
     }
     SelectedMonsterRow = nullptr;
     TArray<FEnemySpawnInfo*> Rows;
-    MonsterTable->GetAllRows(TEXT(""), Rows);
+    if (MonsterTable)
+    {
+        MonsterTable->GetAllRows(TEXT(""), Rows);
+    }
     if (Rows.Num() > 0)
     {
         SelectedMonsterRow = Rows[0];
@@ -294,7 +292,31 @@ void ASGameModeBase::SpawnBotTimerElapsed()
     Request.Execute(EEnvQueryRunMode::RandomBest5Pct, this, &ASGameModeBase::OnBotSpawnQueryCompleted);
 }
 
-// In SGameModeBase.cpp
+void ASGameModeBase::OnBotSpawnQueryCompleted(TSharedPtr<FEnvQueryResult> Result)
+{
+    if (!Result.IsValid() || !Result->IsSuccessful())
+    {
+        return;
+    }
+
+    TArray<FVector> Locations;
+    Result->GetAllAsLocations(Locations);
+    if (Locations.Num() == 0 || !SelectedMonsterRow || !MonsterTable)
+    {
+        return;
+    }
+
+    const float SpawnCost = SelectedMonsterRow->SpawnCost;
+    for (int32 i = 0; i < Locations.Num(); i++)
+    {
+        if (AvailableSpawnCredit < SpawnCost)
+        {
+            break;
+        }
+        FVector SpawnLocation = Locations[i];
+        SpawnScaledEnemy(SpawnLocation);
+    }
+}
 
 void ASGameModeBase::SpawnScaledEnemy(const FVector& SpawnLocation)
 {
@@ -304,12 +326,10 @@ void ASGameModeBase::SpawnScaledEnemy(const FVector& SpawnLocation)
         return;
     }
 
-    // Get the actor pooling subsystem.
     USActorPoolingSubsystem* PoolingSystem = GetWorld()->GetSubsystem<USActorPoolingSubsystem>();
     FActorSpawnParameters SpawnParams;
     SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
-    // Try to acquire an enemy from the pool; if not available, spawn one normally.
     AActor* NewEnemy = nullptr;
     if (PoolingSystem)
     {
@@ -322,42 +342,28 @@ void ASGameModeBase::SpawnScaledEnemy(const FVector& SpawnLocation)
 
     if (NewEnemy)
     {
-        // Cast to your enemy character type.
         AEnemyCharacter* EnemyCharacter = Cast<AEnemyCharacter>(NewEnemy);
         if (EnemyCharacter)
         {
-            // Get the attribute component attached to the enemy.
             if (USAttributeComponent* AttributeComp = USAttributeComponent::GetAttributes(EnemyCharacter))
             {
-                // Use the current HealthMax as the base health.
                 float BaseHealth = AttributeComp->GetHealthMax();
-                // For damage scaling, assume your enemy character has these functions.
-                float BaseDamage = EnemyCharacter->GetBaseDamage(); // Implement this in AEnemyCharacter if not present.
+                float BaseDamage = EnemyCharacter->GetBaseDamage();
 
-                // Calculate scaled values based on CurrentLevel.
-                int32 Level = CurrentLevel; // At level 1, no extra scaling.
+                int32 Level = CurrentLevel;
                 float ScaledHealth = BaseHealth + (Level - 1) * 10.0f;
                 float ScaledDamage = BaseDamage + (Level - 1) * 5.0f;
 
-                // Update health.
-                // Calculate the difference and apply it.
                 float DeltaHealth = ScaledHealth - AttributeComp->GetHealthMax();
-                // For enemies, you may update HealthMax directly if safe to do so.
-                // (If ApplyMaxHealthChange is restricted to players, you might need to add a setter for enemies.)
                 AttributeComp->ApplyMaxHealthChange(DeltaHealth);
-                // Ensure current health is updated (or directly set it if you have a setter).
                 AttributeComp->SetCurrentHealth(ScaledHealth);
 
-                // Update damage.
-                // Assumes your enemy character class has a SetDamage() function.
                 EnemyCharacter->SetDamage(ScaledDamage);
 
                 UE_LOG(LogTemp, Log, TEXT("Spawned enemy at %s with Health: %.1f, Damage: %.1f (Level %d)"),
                     *SpawnLocation.ToString(), ScaledHealth, ScaledDamage, Level);
             }
         }
-
-        // Deduct the spawn cost.
         AvailableSpawnCredit -= SelectedMonsterRow->SpawnCost;
     }
     else
@@ -366,45 +372,12 @@ void ASGameModeBase::SpawnScaledEnemy(const FVector& SpawnLocation)
     }
 }
 
-// Modified OnBotSpawnQueryCompleted to use the new scaling spawn function.
-void ASGameModeBase::OnBotSpawnQueryCompleted(TSharedPtr<FEnvQueryResult> Result)
+void ASGameModeBase::OnPowerupSpawnQueryCompleted(TSharedPtr<FEnvQueryResult> Result)
 {
     if (!Result.IsValid())
     {
         return;
     }
-    if (!Result->IsSuccessful())
-    {
-        return;
-    }
-
-    TArray<FVector> Locations;
-    Result->GetAllAsLocations(Locations);
-    if (Locations.Num() == 0)
-    {
-        return;
-    }
-    if (!SelectedMonsterRow || !MonsterTable)
-    {
-        return;
-    }
-
-    const float SpawnCost = SelectedMonsterRow->SpawnCost;
-    for (int32 i = 0; i < Locations.Num(); i++)
-    {
-        // Check available spawn credit.
-        if (AvailableSpawnCredit < SpawnCost)
-        {
-            break;
-        }
-
-        FVector SpawnLocation = Locations[i];
-        // Use the new function to spawn an enemy with scaling.
-        SpawnScaledEnemy(SpawnLocation);
-    }
-}
-void ASGameModeBase::OnPowerupSpawnQueryCompleted(TSharedPtr<FEnvQueryResult> Result)
-{
     FEnvQueryResult* QueryResult = Result.Get();
     if (!QueryResult->IsSuccessful())
     {
@@ -420,7 +393,7 @@ void ASGameModeBase::OnPowerupSpawnQueryCompleted(TSharedPtr<FEnvQueryResult> Re
         FVector PickedLocation = Locations[RandomLocationIndex];
         Locations.RemoveAt(RandomLocationIndex);
         bool bValidLocation = true;
-        for (FVector OtherLocation : UsedLocations)
+        for (const FVector& OtherLocation : UsedLocations)
         {
             if ((PickedLocation - OtherLocation).Size() < RequiredPowerupDistance)
             {

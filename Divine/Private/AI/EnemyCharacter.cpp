@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 
 #include "AI/EnemyCharacter.h"
 #include "Perception/PawnSensingComponent.h"
@@ -42,7 +40,6 @@ AEnemyCharacter::AEnemyCharacter()
 
 void AEnemyCharacter::MulticastPawnSeen_Implementation()
 {
-	// Since we no longer use the world widget for enemy pawns, simply log the call.
 	UE_LOG(LogTemp, Log, TEXT("MulticastPawnSeen called, but no widget is used."));
 }
 
@@ -66,7 +63,6 @@ void AEnemyCharacter::OnHealthChanged(AActor* InstigatorActor, USAttributeCompon
 
 		GetMesh()->SetCustomPrimitiveDataFloat(HitFlash_CustomPrimitiveIndex, GetWorld()->TimeSeconds);
 
-		// Play hit reaction animation if enemy is hit but not killed.
 		if (NewHealth > 0.0f && HitReactMontage)
 		{
 			if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
@@ -75,24 +71,20 @@ void AEnemyCharacter::OnHealthChanged(AActor* InstigatorActor, USAttributeCompon
 			}
 		}
 
-		// Died
 		if (NewHealth <= 0.0f)
 		{
-			// Stop behavior tree logic.
 			AAIController* AIC = GetController<AAIController>();
 			if (AIC && AIC->GetBrainComponent())
 			{
 				AIC->GetBrainComponent()->StopLogic("Killed");
 			}
 
-			// Switch to ragdoll.
 			GetMesh()->SetAllBodiesSimulatePhysics(true);
 			GetMesh()->SetCollisionProfileName("Ragdoll");
 
 			GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 			GetCharacterMovement()->DisableMovement();
 
-			// Optionally, schedule actor destruction.
 			FTimerHandle TimerHandle_Destroy;
 			FTimerDelegate Delegate_Destroy;
 			Delegate_Destroy.BindUFunction(this, FName("DestroyEnemyCharacter"));
@@ -104,7 +96,7 @@ void AEnemyCharacter::OnHealthChanged(AActor* InstigatorActor, USAttributeCompon
 
 void AEnemyCharacter::DestroyEnemyCharacter()
 {
-	Destroy(); // Actually destroy the actor
+	Destroy();
 }
 
 void AEnemyCharacter::SetTargetActor(AActor* NewTarget)
@@ -114,7 +106,6 @@ void AEnemyCharacter::SetTargetActor(AActor* NewTarget)
 
 	AIC->GetBlackboardComponent()->SetValueAsObject(TargetActorKey, NewTarget);
 
-	// Start attacking if within range
 	if (NewTarget && MeleeAttackMontage)
 	{
 		float DistanceTo = FVector::Distance(GetActorLocation(), NewTarget->GetActorLocation());
@@ -193,10 +184,8 @@ void AEnemyCharacter::Tick(float DeltaTime)
 
 	FVector CurrentLocation = GetActorLocation();
 
-	// Check if the enemy has fallen below the threshold.
 	if (CurrentLocation.Z < -1000.0f)
 	{
-		// Retrieve current level from the game mode using the getter.
 		ASGameModeBase* GM = Cast<ASGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()));
 		int32 CurrentLevel = 1;
 		if (GM)
@@ -204,25 +193,21 @@ void AEnemyCharacter::Tick(float DeltaTime)
 			CurrentLevel = GM->GetCurrentLevel();
 		}
 
-		// Build the dynamic tag, e.g. "spawn_level1"
 		FString SpawnTagStr = FString::Printf(TEXT("spawn_level%d"), CurrentLevel);
 		FName SpawnTag(*SpawnTagStr);
 
-		// Find spawn points with that tag.
 		TArray<AActor*> SpawnPoints;
 		UGameplayStatics::GetAllActorsWithTag(GetWorld(), SpawnTag, SpawnPoints);
 
 		if (SpawnPoints.Num() > 0)
 		{
 			FVector SpawnLocation = SpawnPoints[0]->GetActorLocation();
-			// Use the spawn point's X and Y, but set Z to 1000.
 			SpawnLocation.Z = 250.0f;
 			SetActorLocation(SpawnLocation);
 			UE_LOG(LogTemp, Warning, TEXT("Enemy %s repositioned to spawn location %s"), *GetNameSafe(this), *SpawnLocation.ToString());
 		}
 		else
 		{
-			// Fallback: just set Z to 1000, keep current X and Y.
 			CurrentLocation.Z = 250.0f;
 			SetActorLocation(CurrentLocation);
 			UE_LOG(LogTemp, Warning, TEXT("Enemy %s repositioned to Z=1000 (no spawn point found)"), *GetNameSafe(this));
