@@ -18,7 +18,6 @@ class DIVINE_API ISGameplayInterface
 
 public:
 
-	/* Called after the Actor state was restored from a SaveGame file. */
 	UFUNCTION(BlueprintNativeEvent)
 	void OnActorLoaded();
 

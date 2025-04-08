@@ -15,7 +15,6 @@ public:
     virtual void NativeConstruct() override;
 
 protected:
-    // Bind this to your Score Text Block in the widget designer
     UPROPERTY(meta = (BindWidget))
     UTextBlock* ScoreText;
 };

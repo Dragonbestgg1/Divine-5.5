@@ -4,7 +4,7 @@
 #include "BehaviorTree/BTTaskNode.h"
 #include "BTTask_CheckDistance.generated.h"
 
-UCLASS(BlueprintType) // Add this line to expose the class to Blueprints
+UCLASS(BlueprintType)
 class DIVINE_API UBTTask_CheckDistance : public UBTTaskNode
 {
     GENERATED_BODY()

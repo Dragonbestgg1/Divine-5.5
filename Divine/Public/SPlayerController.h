@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
-#include "PlayerHUDWidget.h"  // Include our HUD widget header so UPlayerHUDWidget is defined.
+#include "PlayerHUDWidget.h"
 #include "SPlayerController.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPawnChanged, APawn*, NewPawn);
@@ -16,21 +16,17 @@ class DIVINE_API ASPlayerController : public APlayerController
 public:
 
 protected:
-	// Pause menu widget variables
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UUserWidget> PauseMenuClass;
 
 	UPROPERTY()
 	TObjectPtr<UUserWidget> PauseMenuInstance;
 
-	// Combined HUD widget for health and score.
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UPlayerHUDWidget> PlayerHUDWidgetClass;
 
 	UPROPERTY()
 	TObjectPtr<UPlayerHUDWidget> PlayerHUDWidgetInstance;
-
-	// Functions
 
 	UFUNCTION(BlueprintCallable, Category = "Pause")
 	void PauseGame();
@@ -48,7 +44,6 @@ protected:
 
 	virtual void SetPawn(APawn* InPawn) override;
 
-	// Override BeginPlayingState to create our HUD widget
 	virtual void BeginPlayingState() override;
 
 	UFUNCTION(BlueprintImplementableEvent)

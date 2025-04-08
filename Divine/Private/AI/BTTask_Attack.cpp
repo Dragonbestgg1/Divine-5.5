@@ -14,12 +14,11 @@ UBTTask_Attack::UBTTask_Attack()
 	AttackRange = 130.0f;
 	AttackDamage = 20.0f;
 	TargetActorKey.SelectedKeyName = "TargetActor";
-	SwordSocket = "SwordSocket"; // Default socket name
+	SwordSocket = "SwordSocket";
 }
 
 EBTNodeResult::Type UBTTask_Attack::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-    // Abort task if the game is paused
     if (OwnerComp.GetWorld()->IsPaused())
     {
         return EBTNodeResult::Failed;
@@ -40,16 +39,13 @@ EBTNodeResult::Type UBTTask_Attack::ExecuteTask(UBehaviorTreeComponent& OwnerCom
         return EBTNodeResult::Failed;
     }
 
-    // Play attack animation
     Enemy->PlayAttackMontage();
 
-    // Find sword socket location
     USkeletalMeshComponent* MeshComp = Enemy->GetMesh();
     if (!MeshComp) return EBTNodeResult::Failed;
 
     FVector SwordLocation = MeshComp->GetSocketLocation(SwordSocket);
 
-    // Check if the sword overlaps the target
     if (TargetActor->GetDistanceTo(Enemy) <= AttackRange)
     {
         UGameplayStatics::ApplyDamage(TargetActor, AttackDamage, AIController, Enemy, UDamageType::StaticClass());

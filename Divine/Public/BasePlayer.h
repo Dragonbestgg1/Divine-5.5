@@ -19,10 +19,10 @@ class USActionComponent;
 UCLASS()
 class DIVINE_API ABasePlayer : public ACharacter
 {
-	GENERATED_BODY()  // Ensure this is right after UCLASS()
+	GENERATED_BODY()
 
 protected:
-	// Input-related properties
+
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UInputMappingContext> DefaultInputMapping;
 
@@ -44,7 +44,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
 	TObjectPtr<UInputAction> Input_Pause;
 
-	// Components
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<USpringArmComponent> SpringArmComp;
 
@@ -63,7 +62,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<USActionComponent> ActionComp;
 
-	// Health management functions
 	void Move(const FInputActionInstance& Instance);
 	void LookMouse(const FInputActionValue& InputValue);
 	void LookStick(const FInputActionValue& InputValue);
@@ -75,23 +73,20 @@ protected:
 
 	virtual void PostInitializeComponents() override;
 
-	// Crosshair targeting functions
 	void FindCrosshairTarget();
 	void CrosshairTraceComplete(const FTraceHandle& InTraceHandle, FTraceDatum& InTraceDatum);
 	FTraceHandle TraceHandle;
 
 	bool bHasPawnTarget;
 
-	float DestructionDelay; // Declare DestructionDelay here!
+	float DestructionDelay;
 
 	UFUNCTION()
 	void DestroyBasePlayerCharacter();
 
-	// Damage and death-related logic
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
 		AController* EventInstigator, AActor* DamageCauser) override;
 
-	// In BasePlayer.h, under your protected members
 	UPROPERTY()
 	UUserWidget* PauseMenuWidget;
 

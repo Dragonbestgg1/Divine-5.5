@@ -1,8 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "SSaveGameSubsystem.h"
-
 #include "Divine.h"
 #include "EngineUtils.h"
 #include "SGameplayInterface.h"
@@ -22,7 +18,7 @@ void USSaveGameSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	Super::Initialize(Collection);
 
 	const USSaveGameSettings* SGSettings = GetDefault<USSaveGameSettings>();
-	// Access defaults from DefaultGame.ini
+
 	CurrentSlotName = SGSettings->SaveSlotName;
 
 	UDataTable* DummyTable = SGSettings->DummyTablePath.LoadSynchronous();
@@ -41,7 +37,7 @@ void USSaveGameSubsystem::HandleStartingNewPlayer(AController* NewPlayer)
 
 bool USSaveGameSubsystem::OverrideSpawnTransform(AController* NewPlayer)
 {
-	if (!CurrentSaveGame)  // If there’s no valid save, just return false
+	if (!CurrentSaveGame)
 	{
 		return false;
 	}
@@ -65,7 +61,6 @@ bool USSaveGameSubsystem::OverrideSpawnTransform(AController* NewPlayer)
 			MyPawn->SetActorLocation(FoundData->Location);
 			MyPawn->SetActorRotation(FoundData->Rotation);
 
-			// PlayerState owner is a (Player)Controller
 			AController* PC = CastChecked<AController>(PS->GetOwner());
 			PC->SetControlRotation(FoundData->Rotation);
 
@@ -96,7 +91,6 @@ void USSaveGameSubsystem::WriteSaveGame()
 		CurrentSaveGame = Cast<USSaveGame>(UGameplayStatics::CreateSaveGameObject(USSaveGame::StaticClass()));
 	}
 
-	// Now it is safe to clear arrays
 	CurrentSaveGame->SavedPlayers.Empty();
 	CurrentSaveGame->SavedActors.Empty();
 
@@ -127,7 +121,6 @@ void USSaveGameSubsystem::WriteSaveGame()
 		ActorData.ActorName = Actor->GetFName();
 		ActorData.Transform = Actor->GetActorTransform();
 
-		// Pass the array to fill with data from Actor
 		FMemoryWriter MemWriter(ActorData.ByteData);
 
 		FObjectAndNameAsStringProxyArchive Ar(MemWriter, true);

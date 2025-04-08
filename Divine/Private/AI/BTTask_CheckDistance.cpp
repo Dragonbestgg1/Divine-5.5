@@ -5,7 +5,7 @@
 
 UBTTask_CheckDistance::UBTTask_CheckDistance()
 {
-    bNotifyTick = true; // Enable ticking
+    bNotifyTick = true;
 }
 
 void UBTTask_CheckDistance::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
@@ -29,13 +29,11 @@ void UBTTask_CheckDistance::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* N
 
     if (OwnerComp.GetWorld()->IsPaused())
     {
-        // Do nothing if paused
         return;
     }
 }
 
 EBTNodeResult::Type UBTTask_CheckDistance::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-    // Task execution logic can go here.
-    return EBTNodeResult::InProgress; // Keep the task in progress to allow ticking
+    return EBTNodeResult::InProgress;
 }

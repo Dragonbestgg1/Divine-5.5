@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #include "SInteractionComponent.h"
 #include "SGameplayInterface.h"
 #include "DrawDebugHelpers.h"
@@ -78,7 +76,6 @@ void USInteractionComponent::FindBestInteractable()
 		{
 			DefaultWidgetInstance = CreateWidget<USWorldUserWidget>(GetWorld(), DefaultWidgetClass);
 		}
-		// Since the new widget does not use AttachedActor, we no longer assign it.
 		if (DefaultWidgetInstance && !DefaultWidgetInstance->IsInViewport())
 		{
 			DefaultWidgetInstance->AddToViewport();

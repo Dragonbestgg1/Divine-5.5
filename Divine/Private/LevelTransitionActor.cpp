@@ -10,7 +10,6 @@ ALevelTransitionActor::ALevelTransitionActor()
     MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComp"));
     RootComponent = MeshComp;
 
-    // Ensure the mesh only queries collisions and overlaps with Pawn.
     MeshComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
     MeshComp->SetCollisionResponseToAllChannels(ECR_Ignore);
     MeshComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
@@ -32,7 +31,6 @@ void ALevelTransitionActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 void ALevelTransitionActor::NotifyActorBeginOverlap(AActor* OtherActor)
 {
     Super::NotifyActorBeginOverlap(OtherActor);
-    // Only trigger if the overlapping actor is your player (or your specific player class)
     if (OtherActor && OtherActor->IsA(APawn::StaticClass()))
     {
         UE_LOG(LogTemp, Log, TEXT("Transition actor overlapped by player, triggering level change."));
@@ -40,7 +38,6 @@ void ALevelTransitionActor::NotifyActorBeginOverlap(AActor* OtherActor)
         if (GM)
         {
             GM->OnLevelChanged();
-            // Destroy self to prevent multiple triggers:
             Destroy();
         }
         else

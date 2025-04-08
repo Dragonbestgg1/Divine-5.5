@@ -2,8 +2,8 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/PointLightComponent.h"
 #include "GameFramework/Character.h"
-#include "PlayerDamageComponent.h"  // For damage effects, if needed
-#include "SAttributeComponent.h"    // For health effects
+#include "PlayerDamageComponent.h"
+#include "SAttributeComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/Engine.h"
 #include "SPlayerState.h"
@@ -12,15 +12,12 @@ AItemActor::AItemActor()
 {
     PrimaryActorTick.bCanEverTick = false;
 
-    // Create and set up the mesh component.
     MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComp"));
     RootComponent = MeshComp;
 
-    // Set collision to QueryOnly and respond with overlap.
     MeshComp->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
     MeshComp->OnComponentBeginOverlap.AddDynamic(this, &AItemActor::HandleOverlap);
 
-    // Create a point light component for glow.
     GlowLight = CreateDefaultSubobject<UPointLightComponent>(TEXT("GlowLight"));
     GlowLight->SetupAttachment(RootComponent);
     GlowLight->SetIntensity(5000.f);
@@ -32,7 +29,6 @@ void AItemActor::BeginPlay()
 {
     Super::BeginPlay();
 
-    // Check if any character is already overlapping this item.
     TArray<AActor*> OverlappingActors;
     MeshComp->GetOverlappingActors(OverlappingActors, ACharacter::StaticClass());
     for (AActor* Actor : OverlappingActors)
@@ -41,7 +37,7 @@ void AItemActor::BeginPlay()
         {
             UE_LOG(LogTemp, Log, TEXT("AItemActor::BeginPlay found overlapping character: %s"), *Character->GetName());
             OnPickedUp(Character);
-            break; // Only pick up once.
+            break;
         }
     }
 }
@@ -67,7 +63,6 @@ void AItemActor::OnPickedUp(ACharacter* PickingCharacter)
         return;
     }
 
-    // Get components from the character.
     USAttributeComponent* AttrComp = PickingCharacter->FindComponentByClass<USAttributeComponent>();
     UPlayerDamageComponent* DamageComp = PickingCharacter->FindComponentByClass<UPlayerDamageComponent>();
 
@@ -114,7 +109,6 @@ void AItemActor::OnPickedUp(ACharacter* PickingCharacter)
         }
     }
 
-    // Award score based on the data table value.
     if (ASPlayerState* PS = PickingCharacter->GetPlayerState<ASPlayerState>())
     {
         PS->AddCredits(ItemInfo.ScoreValue);

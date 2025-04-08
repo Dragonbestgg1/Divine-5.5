@@ -1,9 +1,6 @@
 #include "SAttributeComponent.h"
 #include "SGameModeBase.h"
 #include "Net/UnrealNetwork.h"
-
-// Include your player header to check for player type.
-// For example, if your player character class is ABasePlayer:
 #include "BasePlayer.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(SAttributeComponent)
@@ -73,12 +70,10 @@ void USAttributeComponent::ApplyMaxHealthChange(float DeltaMax)
 
 	if (DeltaMax > 0.f)
 	{
-		// If increasing max health, set current health to new max.
 		Health = HealthMax;
 	}
 	else
 	{
-		// If decreasing, leave current health unchanged, but clamp it.
 		Health = FMath::Clamp(Health, 0.f, HealthMax);
 	}
 

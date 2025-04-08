@@ -10,11 +10,10 @@
 
 ASPlayerState::ASPlayerState()
 {
-	// Initialize default values
-	// Set the initial score to 500 using our custom Credits variable.
+
 	Credits = 500;
 	PersonalRecordTime = 0.0f;
-	PlayerHealth = 100.0f; // Default health value
+	PlayerHealth = 100.0f;
 }
 
 void ASPlayerState::AddCredits(int32 Delta)
@@ -32,7 +31,6 @@ void ASPlayerState::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// Set up a timer to call TickScoreDown every second.
 	GetWorld()->GetTimerManager().SetTimer(ScoreTickTimer, this, &ASPlayerState::TickScoreDown, 1.0f, true);
 }
 
@@ -88,7 +86,6 @@ void ASPlayerState::SavePlayerState_Implementation(USSaveGame* SaveObject)
 		SaveData.Credits = Credits;
 		SaveData.PersonalRecordTime = PersonalRecordTime;
 
-		// Instead of using PlayerHealth, query the Attribute Component:
 		if (APawn* MyPawn = GetPawn())
 		{
 			if (USAttributeComponent* AttrComp = MyPawn->FindComponentByClass<USAttributeComponent>())
@@ -97,7 +94,7 @@ void ASPlayerState::SavePlayerState_Implementation(USSaveGame* SaveObject)
 			}
 			else
 			{
-				SaveData.Health = PlayerHealth; // fallback
+				SaveData.Health = PlayerHealth;
 			}
 
 			SaveData.Location = MyPawn->GetActorLocation();
@@ -119,9 +116,8 @@ void ASPlayerState::LoadPlayerState_Implementation(USSaveGame* SaveObject)
 		{
 			AddCredits(FoundData->Credits);
 			PersonalRecordTime = FoundData->PersonalRecordTime;
-			PlayerHealth = FoundData->Health;  // Update SPlayerState's property
+			PlayerHealth = FoundData->Health;
 
-			// Try to update the pawn's health immediately.
 			if (APawn* MyPawn = GetPawn())
 			{
 				if (USAttributeComponent* AttrComp = MyPawn->FindComponentByClass<USAttributeComponent>())
@@ -131,7 +127,6 @@ void ASPlayerState::LoadPlayerState_Implementation(USSaveGame* SaveObject)
 			}
 			else
 			{
-				// Pawn not available yet; set a timer to try again shortly.
 				if (UWorld* World = GetWorld())
 				{
 					FTimerHandle TimerHandle;
@@ -144,7 +139,7 @@ void ASPlayerState::LoadPlayerState_Implementation(USSaveGame* SaveObject)
 									AttrComp->SetCurrentHealth(FoundData->Health);
 								}
 							}
-						}, 0.5f, false); // Adjust the delay if needed.
+						}, 0.5f, false);
 				}
 			}
 		}

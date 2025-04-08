@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Components/SSignificanceComponent.h"
 #include "Divine.h"
 #include "NiagaraComponent.h"
@@ -164,7 +161,6 @@ float USSignificanceComponent::GetSignificanceByDistance(float DistanceSqrd) con
 
 	if (DistanceSqrd >= Thresholds[NumThresholds - 1].GetMaxDistSqrd())
 	{
-		// Max distance reached assume lowest significance
 		return static_cast<float>(ESignificanceValue::Lowest);
 	}
 
@@ -198,7 +194,6 @@ void USSignificanceComponent::UpdateParticleSignificance(float NewSignificance)
 		{
 			CurrSignificance = EParticleSignificanceLevel::Low;
 		}
-		// Lowest significance, only render critical particles
 		else if (NewSignificance <= static_cast<float>(ESignificanceValue::Lowest))
 		{
 			CurrSignificance = EParticleSignificanceLevel::Critical;

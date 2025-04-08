@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "AI/EnemyController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 
@@ -19,6 +16,5 @@ void AEnemyController::BeginPlay()
 
 AEnemyController::AEnemyController()
 {
-	// Disable ticking when the game is paused
 	PrimaryActorTick.bTickEvenWhenPaused = false;
 }

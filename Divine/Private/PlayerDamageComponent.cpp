@@ -3,8 +3,6 @@
 UPlayerDamageComponent::UPlayerDamageComponent()
 {
     PrimaryComponentTick.bCanEverTick = false;
-
-    // Set defaults
     BaseDamage = 10.f;
     CollectedFlatBonus = 0.f;
     CollectedMultiplier = 1.f;
@@ -12,11 +10,8 @@ UPlayerDamageComponent::UPlayerDamageComponent()
 
 float UPlayerDamageComponent::GetActualDamage() const
 {
-    // Compute base damage with flat bonus and multiplier.
     float Damage = (BaseDamage + CollectedFlatBonus) * CollectedMultiplier;
 
-    // For each conditional modifier, if the computed damage is less than or equal
-    // to the modifier's ConditionThreshold, apply the multiplier.
     for (const FConditionalDamageModifier& Modifier : ConditionalModifiers)
     {
         if (Modifier.EffectType == EConditionalDamageEffectType::ConditionalDamageMultiplierForDecreasedDamage)

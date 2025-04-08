@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "SActionComponent.h"
 #include "SAction.h"
 #include "Divine.h"

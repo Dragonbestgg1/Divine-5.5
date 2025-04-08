@@ -16,7 +16,6 @@ void UPlayerHUDWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime
 		return;
 	}
 
-	// Update Health information
 	if (APawn* Pawn = PC->GetPawn())
 	{
 		if (ABasePlayer* Player = Cast<ABasePlayer>(Pawn))
@@ -40,7 +39,6 @@ void UPlayerHUDWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime
 		}
 	}
 
-	// Update Score information from the player's state (assumed to be ASPlayerState)
 	if (PC->PlayerState)
 	{
 		if (ASPlayerState* PS = Cast<ASPlayerState>(PC->PlayerState))

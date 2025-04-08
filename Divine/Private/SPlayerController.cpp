@@ -7,20 +7,16 @@
 
 void ASPlayerController::PauseGame()
 {
-    // Only pause if the game is not already paused.
     if (!UGameplayStatics::IsGamePaused(GetWorld()))
     {
-        // Pause the game
         UGameplayStatics::SetGamePaused(GetWorld(), true);
 
-        // Create and add the pause menu widget
         PauseMenuInstance = CreateWidget<UUserWidget>(this, PauseMenuClass);
         if (PauseMenuInstance)
         {
             PauseMenuInstance->AddToViewport(100);
             bShowMouseCursor = true;
 
-            // Set input mode to UI only so that input goes to the widget
             FInputModeUIOnly UIInput;
             UIInput.SetWidgetToFocus(PauseMenuInstance->TakeWidget());
             SetInputMode(UIInput);
@@ -30,7 +26,6 @@ void ASPlayerController::PauseGame()
             UE_LOG(LogTemp, Warning, TEXT("Failed to create PauseMenuInstance!"));
         }
 
-        // Disable pawn input so the player cannot move while paused
         if (APawn* ControlledPawn = GetPawn())
         {
             ControlledPawn->DisableInput(this);
@@ -40,25 +35,20 @@ void ASPlayerController::PauseGame()
 
 void ASPlayerController::UnpauseGame()
 {
-    // Only unpause if the game is currently paused.
     if (UGameplayStatics::IsGamePaused(GetWorld()))
     {
-        // Unpause the game
         UGameplayStatics::SetGamePaused(GetWorld(), false);
 
-        // Remove the pause menu widget, if present
         if (PauseMenuInstance && PauseMenuInstance->IsInViewport())
         {
             PauseMenuInstance->RemoveFromParent();
             PauseMenuInstance = nullptr;
         }
 
-        // Set input mode back to game only and hide the cursor
         FInputModeGameOnly GameInput;
         SetInputMode(GameInput);
         bShowMouseCursor = false;
 
-        // Re-enable pawn input so the player can control the character
         if (APawn* ControlledPawn = GetPawn())
         {
             ControlledPawn->EnableInput(this);
@@ -70,10 +60,8 @@ void ASPlayerController::SetupInputComponent()
 {
     Super::SetupInputComponent();
 
-    // Bind your pause/unpause actions.
-    // Bind Esc (or an action mapped to Esc) to PauseGame() 
     InputComponent->BindAction("PauseMenu", IE_Pressed, this, &ASPlayerController::PauseGame);
-    // Bind Return (or an action mapped to Return) to UnpauseGame()
+
     InputComponent->BindAction("Return", IE_Pressed, this, &ASPlayerController::UnpauseGame);
 }
 

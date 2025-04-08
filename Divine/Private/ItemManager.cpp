@@ -2,7 +2,7 @@
 #include "ItemActor.h"
 #include "Engine/World.h"
 #include "Engine/DataTable.h"
-#include "CustomItemRow.h"  // Your DataTable row struct (updated to include ScoreValue)
+#include "CustomItemRow.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "UObject/ConstructorHelpers.h"
 
@@ -10,7 +10,6 @@ AItemManager::AItemManager()
 {
     PrimaryActorTick.bCanEverTick = false;
 
-    // Fallback: Try to assign ItemActorClass if not already assigned via Blueprint.
     static ConstructorHelpers::FClassFinder<AItemActor> ItemActorBPClass(TEXT("/Game/Divine/Items/Items"));
     if (ItemActorBPClass.Succeeded())
     {
@@ -54,7 +53,6 @@ void AItemManager::LoadItemsFromDataTable()
             NewItem.RarityWeight = Row->RarityWeight;
             NewItem.Rarity = Row->Rarity;
             NewItem.ItemMesh = Row->ItemMesh;
-            // Assign the score value from the data table row.
             NewItem.ScoreValue = Row->ScoreValue;
             NewItem.bHasSpawned = false;
             AvailableItems.Add(NewItem);
@@ -132,7 +130,6 @@ void AItemManager::SpawnItemAtLocation(const FVector& SpawnLocation)
         return;
     }
 
-    // Pass the full FCustomItemInfo struct to the Initialize function.
     NewItem->Initialize(*SelectedItem);
     SelectedItem->bHasSpawned = true;
 

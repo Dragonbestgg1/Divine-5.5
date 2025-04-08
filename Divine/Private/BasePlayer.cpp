@@ -55,7 +55,7 @@ ABasePlayer::ABasePlayer()
 	PrimaryActorTick.bTickEvenWhenPaused = false;
 
 
-	DestructionDelay = 5.0f; // Added Destruction Delay for Player Ragdoll
+	DestructionDelay = 5.0f;
 }
 
 
@@ -82,14 +82,12 @@ void ABasePlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 	UEnhancedInputComponent* InputComp = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
 
-	// General
 	InputComp->BindAction(Input_Move, ETriggerEvent::Triggered, this, &ABasePlayer::Move);
 	InputComp->BindAction(Input_Jump, ETriggerEvent::Triggered, this, &ABasePlayer::Jump);
 	InputComp->BindAction(Input_Interact, ETriggerEvent::Triggered, this, &ABasePlayer::PrimaryInteract);
 	InputComp->BindAction(Input_Pause, ETriggerEvent::Triggered, this, &ABasePlayer::HandlePauseInput);
 	InputComp->BindAction(Input_LookMouse, ETriggerEvent::Triggered, this, &ABasePlayer::LookMouse);
 
-	// Attack
 	InputComp->BindAction(Input_PrimaryAttack, ETriggerEvent::Triggered, this, &ABasePlayer::PrimaryAttack);
 
 }
@@ -156,10 +154,8 @@ void ABasePlayer::Move(const FInputActionInstance& Instance)
 
 	const FVector2D AxisValue = Instance.GetValue().Get<FVector2D>();
 
-	// Move forward/back
 	AddMovementInput(ControlRot.Vector(), AxisValue.Y);
 
-	// Move Right/Left strafe
 	const FVector RightVector = FRotationMatrix(ControlRot).GetScaledAxis(EAxis::Y);
 	AddMovementInput(RightVector, AxisValue.X);
 }
@@ -229,7 +225,6 @@ void ABasePlayer::HandlePauseInput(const FInputActionInstance& Instance)
 
 	if (UGameplayStatics::IsGamePaused(GetWorld()))
 	{
-		// Unpause the game
 		UGameplayStatics::SetGamePaused(GetWorld(), false);
 
 		if (PauseMenuWidget)
@@ -238,20 +233,16 @@ void ABasePlayer::HandlePauseInput(const FInputActionInstance& Instance)
 			PauseMenuWidget = nullptr;
 		}
 
-		// Set input mode back to game-only
 		FInputModeGameOnly GameInput;
 		PC->SetInputMode(GameInput);
 		PC->bShowMouseCursor = false;
 
-		// Re-enable pawn input (this pawn)
 		this->EnableInput(PC);
 	}
 	else
 	{
-		// Pause the game
 		UGameplayStatics::SetGamePaused(GetWorld(), true);
 
-		// Create and add the pause menu widget
 		if (PauseMenuWidgetClass)
 		{
 			PauseMenuWidget = CreateWidget<UUserWidget>(PC, PauseMenuWidgetClass);
@@ -269,7 +260,6 @@ void ABasePlayer::HandlePauseInput(const FInputActionInstance& Instance)
 			UE_LOG(LogTemp, Warning, TEXT("PauseMenuWidgetClass is not set!"));
 		}
 
-		// Set input mode to UI only so the cursor appears
 		FInputModeGameAndUI InputMode;
 		if (PauseMenuWidget)
 		{
@@ -279,7 +269,6 @@ void ABasePlayer::HandlePauseInput(const FInputActionInstance& Instance)
 		PC->SetInputMode(InputMode);
 		PC->bShowMouseCursor = true;
 
-		// Disable pawn input (this pawn)
 		this->DisableInput(PC);
 	}
 }
@@ -288,7 +277,6 @@ void ABasePlayer::HandlePauseInput(const FInputActionInstance& Instance)
 float ABasePlayer::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent,
 	AController* EventInstigator, AActor* DamageCauser)
 {
-	// Use the class member directly
 	if (AttributeComp)
 	{
 		AttributeComp->ApplyHealthChange(DamageCauser, -DamageAmount);
@@ -310,7 +298,6 @@ void ABasePlayer::OnHealthChanged(AActor* InstigatorActor, USAttributeComponent*
 		APlayerController* PC = GetController<APlayerController>();
 		if (PC)
 		{
-			// Disable input, play death montage, etc.
 			DisableInput(PC);
 			if (DeathMontage)
 			{
@@ -321,17 +308,14 @@ void ABasePlayer::OnHealthChanged(AActor* InstigatorActor, USAttributeComponent*
 				}
 			}
 
-			// Delete the save file (make sure the slot name matches your save system)
 			UGameplayStatics::DeleteGameInSlot("SaveGame02", 0);
 
-			// Create and display the death screen widget.
 			if (DeathScreenWidgetClass)
 			{
 				UUserWidget* DeathScreen = CreateWidget<UUserWidget>(PC, DeathScreenWidgetClass);
 				if (DeathScreen)
 				{
 					DeathScreen->AddToViewport();
-					// Set input mode to UI only and show the cursor.
 					FInputModeUIOnly UIInput;
 					UIInput.SetWidgetToFocus(DeathScreen->TakeWidget());
 					PC->SetInputMode(UIInput);
@@ -339,9 +323,7 @@ void ABasePlayer::OnHealthChanged(AActor* InstigatorActor, USAttributeComponent*
 				}
 			}
 		}
-			
 
-		// Optionally schedule destruction of the character after a delay:
 		FTimerHandle TimerHandle_Destroy;
 		FTimerDelegate Delegate_Destroy;
 		Delegate_Destroy.BindUFunction(this, FName("DestroyBasePlayerCharacter"));
@@ -349,9 +331,7 @@ void ABasePlayer::OnHealthChanged(AActor* InstigatorActor, USAttributeComponent*
 	}
 }
 
-
-
 void ABasePlayer::DestroyBasePlayerCharacter()
 {
-	Destroy(); // Actually destroy the actor
+	Destroy();
 }

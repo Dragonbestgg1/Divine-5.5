@@ -20,7 +20,6 @@ void UPlayerScoreWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTi
 		ParentSizeBox->SetRenderTranslation(DesiredPosition);
 	}
 
-	// Update the score display from the player state.
 	APlayerController* PC = GetOwningPlayer();
 	if (PC && PC->PlayerState)
 	{

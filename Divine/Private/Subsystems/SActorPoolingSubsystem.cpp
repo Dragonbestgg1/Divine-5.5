@@ -1,7 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #include "Subsystems/SActorPoolingSubsystem.h"
-
 #include "Divine.h"
 #include "SActorPoolingInterface.h"
 #include "Logging/StructuredLog.h"

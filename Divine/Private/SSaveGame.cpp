@@ -1,8 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "SSaveGame.h"
-
 #include "Divine.h"
 #include "GameFramework/PlayerState.h"
 
@@ -26,7 +22,6 @@ FPlayerSaveData* USSaveGame::GetPlayerData(APlayerState* PlayerState)
 
 		UE_LOGFMT(LogGame, Log, "Couldn't get Player ID.");
 
-		// No saved player data available
 		return nullptr;
 	}
 
